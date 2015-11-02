@@ -941,8 +941,10 @@
 
         divide: function(value) {
             function cback(accum, curr) {
-                var corrFactor = correctionFactor(accum, curr);
-                return (accum * corrFactor) / (curr * corrFactor);
+                var corrFactor = correctionFactor(accum, curr),
+                    result = (accum * corrFactor);
+                result /= (curr * corrFactor);
+                return result;
             }
             this._value = [this._value, value].reduce(cback);
             return this;
