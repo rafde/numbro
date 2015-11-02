@@ -56,6 +56,10 @@
                 fullWithTwoDecimals: '$ ,0.00',
                 fullWithTwoDecimalsNoCurrency: ',0.00'
             }
+        },
+        delimiters =  {
+            thousands: ',',
+            decimal: '.'
         };
 
     /************************************
@@ -176,8 +180,8 @@
             if (string === zeroFormat) {
                 n._value = 0;
             } else {
-                if (cultures[currentCulture].delimiters.decimal !== '.') {
-                    string = string.replace(/\./g, '').replace(cultures[currentCulture].delimiters.decimal, '.');
+                if (delimiters.decimal !== '.') {
+                    string = string.replace(/\./g, '').replace(delimiters.decimal, '.');
                 }
 
                 // see if abbreviations are there so that we can multiply to the correct number
@@ -612,7 +616,7 @@
             w = d.split('.')[0];
 
             if (d.split('.')[1].length) {
-                var p = sep ? abbr + sep : cultures[currentCulture].delimiters.decimal;
+                var p = sep ? abbr + sep : delimiters.decimal;
                 d = p + d.split('.')[1];
             } else {
                 d = '';
@@ -637,7 +641,7 @@
 
         if (thousands > -1) {
             w = w.toString().replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1' +
-                cultures[currentCulture].delimiters.thousands);
+                delimiters.thousands);
         }
 
         if (format.indexOf('.') === 0) {
@@ -897,11 +901,11 @@
         //setup the delimiters and currency symbol based on culture
         _currSymbol = cultureData.currency.symbol;
         _abbrObj = cultureData.abbreviations;
-        _decimalSep = cultureData.delimiters.decimal;
-        if (cultureData.delimiters.thousands === '.') {
+        _decimalSep = delimiters.decimal;
+        if (delimiters.thousands === '.') {
             _thousandSep = '\\.';
         } else {
-            _thousandSep = cultureData.delimiters.thousands;
+            _thousandSep = delimiters.thousands;
         }
 
         // validating currency symbol
@@ -994,6 +998,20 @@
         numbro.includeLocalesInNode(culturesPath, langFiles);
     };
 
+    numbro.setDelimiter = function(delimiterConfig) {
+        if(!isObject(delimiterConfig)){
+              return;
+        }
+
+        Object.keys(delimiters).forEach(function(key){
+            var configVal = delimiterConfig[key];
+
+            if(typeof(configVal) === 'string') {
+                delimiters[key] = configVal;
+            }
+        });
+    };
+
     /************************************
         Helpers
     ************************************/
@@ -1005,12 +1023,22 @@
     function chooseCulture(code) {
         currentCulture = code;
         var defaults = cultures[code].defaults;
-        if (defaults && defaults.format) {
+        if(!isObject(defaults)){
+            return;
+        }
+        if (defaults.format) {
             numbro.defaultFormat(defaults.format);
         }
-        if (defaults && defaults.currencyFormat) {
+        if (defaults.currencyFormat) {
             numbro.defaultCurrencyFormat(defaults.currencyFormat);
         }
+        if(defaults.delimiters) {
+            numbro.setDelimiter(defaults.delimiters);
+        }
+    }
+
+    function isObject(value) {
+        return value && typeof value === 'object';
     }
 
     function inNodejsRuntime() {
